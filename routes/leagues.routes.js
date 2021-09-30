@@ -45,25 +45,32 @@ router.get("/leagues", (req, res, next) => {
 router.post("/join-league", (req, res, next) => {
 	const { userId, leagueId } = req.body
 
-	User.findByIdAndUpdate(userId, { $push: { openLeagues: leagueId } }, { new: true })
+	UserInLeague.find({ userId: userId, league: leagueId }).then((response) => {
+		if (response.length === 0) {
+			User.findByIdAndUpdate(userId, { $push: { openLeagues: leagueId } }, { new: true })
 
-		.then(() => {
-			League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
-				UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
-					if (result.length === 0) {
-						UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, bets: [] }).then(() => {
-							res.status(201).json({ message: "ok" })
+				.then(() => {
+					League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
+						UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
+							console.log("*************", result)
+							if (result.length === 0) {
+								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, bets: [] }).then(() => {
+									res.status(201).json({ message: "ok" })
+								})
+							} else {
+								res.status(500)
+							}
 						})
-					} else {
-						res.status(500)
-					}
+					})
 				})
-			})
-		})
-		.catch((err) => {
-			console.log(err)
-			res.status(500).json({ message: "Internal Server Error" })
-		})
+				.catch((err) => {
+					console.log(err)
+					res.status(500).json({ message: "Internal Server Error" })
+				})
+		} else {
+			res.status(500)
+		}
+	})
 })
 
 module.exports = router
