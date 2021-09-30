@@ -3,16 +3,16 @@ const { Schema, model } = mongoose
 
 const leagueSchema = new Schema({
 	name: { type: String },
-	inscrptionPrice: { type: Number },
+	inscriptionPrice: { type: Number },
 	maxParticipants: { type: Number },
-	accesCode: { type: Text },
-  participants: [
+	accesCode: { type: String },
+	participants: [
 		{
 			type: Schema.Types.ObjectId,
 			ref: "User",
 		},
 	],
-  pot: {type: Number}
+	pot: { type: Number },
 })
 
 module.exports = model("League", leagueSchema)

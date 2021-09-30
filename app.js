@@ -12,6 +12,10 @@ require("./config")(app)
 const authRouter = require("./routes/auth.routes")
 app.use("/api/auth", authRouter)
 
+const LeagueRouter = require("./routes/leagues.routes")
+app.use("/api", LeagueRouter)
+
+
 const allRoutes = require("./routes")
 app.use("/api", allRoutes)
 
