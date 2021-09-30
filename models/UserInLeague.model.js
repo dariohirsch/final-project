@@ -2,18 +2,14 @@ const mongoose = require("mongoose")
 const { Schema, model } = mongoose
 
 const userInLeagueSchema = new Schema({
-	userInLeague: [
-		{
-			type: Schema.Types.ObjectId,
-			ref: "User",
-		},
-	],
-	league: [
-		{
-			type: Schema.Types.ObjectId,
-			ref: "League",
-		},
-	],
+	userId: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
+	},
+	league: {
+		type: Schema.Types.ObjectId,
+		ref: "League",
+	},
 	coinsInLeague: { type: Number },
 	bets: [
 		{

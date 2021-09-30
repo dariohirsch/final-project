@@ -3,6 +3,8 @@ const router = express.Router()
 
 const mongoose = require("mongoose")
 const League = require("../models/League.model")
+const User = require("../models/User.model")
+const UserInLeague = require("../models/UserInLeague.model")
 
 // CREATE LEAGUES ROUTES
 
@@ -36,6 +38,32 @@ router.get("/leagues", (req, res, next) => {
 		.populate("User")
 		.then((allLeagues) => res.json(allLeagues))
 		.catch((err) => res.json(err))
+})
+
+//user joins a league
+
+router.post("/join-league", (req, res, next) => {
+	const { userId, leagueId } = req.body
+
+	User.findByIdAndUpdate(userId, { $push: { openLeagues: leagueId } }, { new: true })
+
+		.then(() => {
+			League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
+				UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
+					if (result.length === 0) {
+						UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, bets: [] }).then(() => {
+							res.status(201).json({ message: "ok" })
+						})
+					} else {
+						res.status(500)
+					}
+				})
+			})
+		})
+		.catch((err) => {
+			console.log(err)
+			res.status(500).json({ message: "Internal Server Error" })
+		})
 })
 
 module.exports = router
