@@ -43,16 +43,15 @@ router.get("/leagues", (req, res, next) => {
 //user joins a league
 
 router.post("/join-league", (req, res, next) => {
-	const { userId, leagueId } = req.body
+	const { userId, leagueId, coinsUpdated } = req.body
 
 	UserInLeague.find({ userId: userId, league: leagueId }).then((response) => {
 		if (response.length === 0) {
-			User.findByIdAndUpdate(userId, { $push: { openLeagues: leagueId } }, { new: true })
+			User.findByIdAndUpdate(userId, { $push: { openLeagues: leagueId }, coins: coinsUpdated }, { new: true })
 
 				.then(() => {
 					League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
 						UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
-							console.log("*************", result)
 							if (result.length === 0) {
 								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, bets: [] }).then(() => {
 									res.status(201).json({ message: "ok" })
@@ -71,6 +70,30 @@ router.post("/join-league", (req, res, next) => {
 			res.status(500)
 		}
 	})
+})
+// view all leagues from one user
+router.post("/my-leagues", (req, res, next) => {
+	const { userId } = req.body
+
+	User.findById(userId)
+
+		.populate("openLeagues")
+		.then((user) => res.json(user))
+
+		.catch((err) => res.json(err))
+})
+
+// view league details
+
+router.get("/league-details/:name", (req, res, next) => {
+	leagueName = req.params.name
+
+	League.find({ name: leagueName })
+
+		.populate("participants")
+		.then((league) => console.log(league))
+		//.then((league) => res.json(league))
+		.catch((err) => res.json(err))
 })
 
 module.exports = router

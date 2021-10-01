@@ -10,7 +10,7 @@ const userSchema = new Schema(
 		openLeagues: [
 			{
 				type: Schema.Types.ObjectId,
-				ref: "Leagues",
+				ref: "League",
 			},
 		],
 	},
