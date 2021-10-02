@@ -4,6 +4,7 @@ const router = express.Router()
 const mongoose = require("mongoose")
 const League = require("../models/League.model")
 const User = require("../models/User.model")
+const Bet = require("../models/Bet.model")
 const UserInLeague = require("../models/UserInLeague.model")
 
 // CREATE LEAGUES ROUTES
@@ -94,6 +95,35 @@ router.get("/league-details/:name", (req, res, next) => {
 		.then((league) => console.log(league))
 		//.then((league) => res.json(league))
 		.catch((err) => res.json(err))
+})
+
+// search user in league
+router.post("/get-userinleague", (req, res, next) => {
+	const { userId, leagueId } = req.body
+
+	console.log(`***`, userId, `****`, leagueId)
+	UserInLeague.find({ league: leagueId, userId: userId })
+
+		//.populate("openLeagues")
+		.then((user) => res.json(user))
+
+		.catch((err) => res.json(err))
+})
+
+//user place a bet
+
+router.post("/place-bet", (req, res, next) => {
+	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague } = req.body
+
+	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague })
+
+		.then(() => {
+			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId }).then((bet) => res.json(bet))
+		})
+		.catch((err) => {
+			console.log(err)
+			res.status(500).json({ message: "Internal Server Error" })
+		})
 })
 
 module.exports = router

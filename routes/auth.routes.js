@@ -118,4 +118,8 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 	res.status(200).json(req.payload)
 })
 
+router.post("get-userinleague", (req, res, next) => {
+	console.log(req)
+})
+
 module.exports = router
