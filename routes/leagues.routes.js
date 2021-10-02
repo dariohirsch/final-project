@@ -41,6 +41,17 @@ router.get("/leagues", (req, res, next) => {
 		.catch((err) => res.json(err))
 })
 
+// get details of one specific league
+
+router.get("/league-details/:id", (req, res, next) => {
+	leagueId = req.params.id
+
+	League.findById(leagueId)
+		.populate("participants")
+		.then((allLeagues) => console.log(allLeagues))
+		.catch((err) => res.json(err))
+})
+
 //user joins a league
 
 router.post("/join-league", (req, res, next) => {
@@ -86,16 +97,16 @@ router.post("/my-leagues", (req, res, next) => {
 
 // view league details
 
-router.get("/league-details/:name", (req, res, next) => {
-	leagueName = req.params.name
+// router.get("/league-details/:name", (req, res, next) => {
+// 	leagueName = req.params.name
 
-	League.find({ name: leagueName })
+// 	League.find({ name: leagueName })
 
-		.populate("participants")
-		.then((league) => console.log(league))
-		//.then((league) => res.json(league))
-		.catch((err) => res.json(err))
-})
+// 		.populate("participants")
+// 		.then((league) => console.log(league))
+// 		//.then((league) => res.json(league))
+// 		.catch((err) => res.json(err))
+// })
 
 // search user in league
 router.post("/get-userinleague", (req, res, next) => {

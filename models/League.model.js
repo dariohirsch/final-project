@@ -9,7 +9,7 @@ const leagueSchema = new Schema({
 	participants: [
 		{
 			type: Schema.Types.ObjectId,
-			ref: "User",
+			ref: "UserInLeague",
 		},
 	],
 	pot: { type: Number },
