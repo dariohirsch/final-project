@@ -86,14 +86,14 @@ router.post("/my-leagues", (req, res, next) => {
 
 // view league details
 
-router.get("/league-details/:name", (req, res, next) => {
-	leagueName = req.params.name
+router.get("/league-details/:id", (req, res, next) => {
+	leagueId = req.params.id
 
-	League.find({ name: leagueName })
+	League.find({ _id: leagueId })
 
 		.populate("participants")
-		.then((league) => console.log(league))
-		//.then((league) => res.json(league))
+		// .then((league) => console.log(league))
+		.then((league) => res.json(league))
 		.catch((err) => res.json(err))
 })
 
@@ -146,6 +146,21 @@ router.get("/result", (req, res, next) => {
 		/* 	.then((bet) => console.log(bet)) */
 		.then((bets) => res.json(bets))
 		.catch((err) => res.json(err))
+})
+
+// get all users and respective coins in league
+router.post("/get-userinleague2", (req, res, next) => {
+	const { leagueId } = req.body
+
+	UserInLeague.find({ league: leagueId /* userId: userId */ })
+
+		.populate("userId")
+		.then((userInLeague) =>
+			res
+				.json(userInLeague)
+
+				.catch((err) => res.json(err))
+		)
 })
 
 module.exports = router
