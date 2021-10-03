@@ -36,19 +36,8 @@ router.post("/newleague", (req, res, next) => {
 
 router.get("/leagues", (req, res, next) => {
 	League.find()
-		.populate("User")
+		//	.populate("User")
 		.then((allLeagues) => res.json(allLeagues))
-		.catch((err) => res.json(err))
-})
-
-// get details of one specific league
-
-router.get("/league-details/:id", (req, res, next) => {
-	leagueId = req.params.id
-
-	League.findById(leagueId)
-		.populate("participants")
-		.then((allLeagues) => console.log(allLeagues))
 		.catch((err) => res.json(err))
 })
 
@@ -97,22 +86,22 @@ router.post("/my-leagues", (req, res, next) => {
 
 // view league details
 
-// router.get("/league-details/:name", (req, res, next) => {
-// 	leagueName = req.params.name
+router.get("/league-details/:name", (req, res, next) => {
+	leagueName = req.params.name
 
-// 	League.find({ name: leagueName })
+	League.find({ name: leagueName })
 
-// 		.populate("participants")
-// 		.then((league) => console.log(league))
-// 		//.then((league) => res.json(league))
-// 		.catch((err) => res.json(err))
-// })
+		.populate("participants")
+		.then((league) => console.log(league))
+		//.then((league) => res.json(league))
+		.catch((err) => res.json(err))
+})
 
 // search user in league
 router.post("/get-userinleague", (req, res, next) => {
 	const { userId, leagueId } = req.body
 
-	console.log(`***`, userId, `****`, leagueId)
+	// console.log(`***`, userId, `****`, leagueId)
 	UserInLeague.find({ league: leagueId, userId: userId })
 
 		//.populate("openLeagues")
@@ -135,6 +124,28 @@ router.post("/place-bet", (req, res, next) => {
 			console.log(err)
 			res.status(500).json({ message: "Internal Server Error" })
 		})
+})
+
+//subnavbar league
+
+router.post("/get-userLeague", (req, res, next) => {
+	const { userId, leagueId } = req.body
+
+	// console.log(`***`, userId, `****`, leagueId)
+	League.find({ _id: leagueId })
+
+		//.populate("openLeagues")
+		.then((user) => res.json(user))
+
+		.catch((err) => res.json(err))
+})
+
+router.get("/result", (req, res, next) => {
+	Bet.find()
+
+		/* 	.then((bet) => console.log(bet)) */
+		.then((bets) => res.json(bets))
+		.catch((err) => res.json(err))
 })
 
 module.exports = router

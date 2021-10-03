@@ -5,9 +5,9 @@ const betSchema = new Schema(
 	{
 		betMatch: { type: String },
 		betSigne: { type: String },
-		coinsToWin: { type: String },
+		coinsToWin: { type: Number },
 		betAmount: { type: Number },
-		idMatch: { type: String },
+		matchId: { type: Number },
 		// userInLeague: [
 		// 	{
 		// 		type: Schema.Types.ObjectId,
