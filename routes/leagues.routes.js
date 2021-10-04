@@ -113,17 +113,32 @@ router.post("/get-userinleague", (req, res, next) => {
 //user place a bet
 
 router.post("/place-bet", (req, res, next) => {
-	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague, condition, matchTime } = req.body
+	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague, condition, matchTime, status } = req.body
 
 	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague })
 
 		.then(() => {
-			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime }).then((bet) => res.json(bet))
+			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime, status }).then((bet) => res.json(bet))
 		})
 		.catch((err) => {
 			console.log(err)
 			res.status(500).json({ message: "Internal Server Error" })
 		})
+})
+
+// check bet won or lost
+
+router.post("/bet-check-status-win", (req, res, next) => {
+	const { betId } = req.body
+	Bet.findByIdAndUpdate(betId, { status: "won" })
+		.then((info) => res.json(info))
+		.catch((err) => res.json(err))
+})
+router.post("/bet-check-status-lost", (req, res, next) => {
+	const { betId } = req.body
+	Bet.findByIdAndUpdate(betId, { status: "lost" })
+		.then((info) => res.json(info))
+		.catch((err) => res.json(err))
 })
 
 //subnavbar league

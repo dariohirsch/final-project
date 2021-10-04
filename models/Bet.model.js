@@ -10,6 +10,7 @@ const betSchema = new Schema(
 		matchId: { type: Number },
 		matchTime: { type: Number },
 		condition: { type: String },
+		status: { type: String },
 	},
 	{ timestamps: true }
 )
