@@ -11,7 +11,7 @@ const UserInLeague = require("../models/UserInLeague.model")
 
 //create new league
 router.post("/newleague", (req, res, next) => {
-	const { name, inscriptionPrice, maxParticipants, accessCode, pot } = req.body
+	const { name, inscriptionPrice, maxParticipants, accessCode, pot, condition } = req.body
 
 	League.findOne({ name })
 		.then((foundLeague) => {
@@ -21,7 +21,7 @@ router.post("/newleague", (req, res, next) => {
 				return
 			}
 
-			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot })
+			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot, condition })
 		})
 		.then((createdLeague) => {
 			res.status(201).json({ league: createdLeague })
@@ -54,7 +54,7 @@ router.post("/join-league", (req, res, next) => {
 					League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
 						UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
 							if (result.length === 0) {
-								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, bets: [] }).then(() => {
+								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, realCoinsInLeague: 500, bets: [] }).then(() => {
 									res.status(201).json({ message: "ok" })
 								})
 							} else {
@@ -113,12 +113,12 @@ router.post("/get-userinleague", (req, res, next) => {
 //user place a bet
 
 router.post("/place-bet", (req, res, next) => {
-	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague } = req.body
+	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague, condition, matchTime } = req.body
 
 	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague })
 
 		.then(() => {
-			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId }).then((bet) => res.json(bet))
+			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime }).then((bet) => res.json(bet))
 		})
 		.catch((err) => {
 			console.log(err)
@@ -140,10 +140,12 @@ router.post("/get-userLeague", (req, res, next) => {
 		.catch((err) => res.json(err))
 })
 
-router.get("/result", (req, res, next) => {
-	Bet.find()
+//get all open bets
 
-		/* 	.then((bet) => console.log(bet)) */
+router.get("/bet-results", (req, res, next) => {
+	// Bet.find({ condition: { $elemMatch: "open" } })
+	Bet.find({ condition: { $in: ["open"] } })
+		// .filter({ condition: "open" })
 		.then((bets) => res.json(bets))
 		.catch((err) => res.json(err))
 })
@@ -152,8 +154,9 @@ router.get("/result", (req, res, next) => {
 router.post("/get-userinleague2", (req, res, next) => {
 	const { leagueId } = req.body
 
-	UserInLeague.find({ league: leagueId /* userId: userId */ })
+	UserInLeague.find({ league: leagueId })
 
+		.sort({ realCoinsInLeague: -1 })
 		.populate("userId")
 		.then((userInLeague) =>
 			res

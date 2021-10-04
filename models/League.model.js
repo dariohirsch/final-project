@@ -13,6 +13,7 @@ const leagueSchema = new Schema({
 		},
 	],
 	pot: { type: Number },
+	condition: { type: String },
 })
 
 module.exports = model("League", leagueSchema)

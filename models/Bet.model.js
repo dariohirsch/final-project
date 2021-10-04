@@ -8,12 +8,8 @@ const betSchema = new Schema(
 		coinsToWin: { type: Number },
 		betAmount: { type: Number },
 		matchId: { type: Number },
-		// userInLeague: [
-		// 	{
-		// 		type: Schema.Types.ObjectId,
-		// 		ref: "UserInLeague",
-		// 	},
-		// ],
+		matchTime: { type: Number },
+		condition: { type: String },
 	},
 	{ timestamps: true }
 )
