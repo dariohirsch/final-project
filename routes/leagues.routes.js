@@ -164,7 +164,26 @@ router.post("/bet-check-status-win", (req, res, next) => {
 router.post("/bet-check-status-lost", (req, res, next) => {
 	const { betId } = req.body
 	Bet.findByIdAndUpdate(betId, { status: "lost", condition: "closed" })
-		.then((info) => res.json(info))
+		.then((result) => {
+			res.json(result)
+			UserInLeague.find()
+				.populate("bets")
+				.then((users) => {
+					users.forEach((user) => {
+						user.bets.forEach((bet) => {
+							// console.log("esto es bet", bet)
+							if (bet.status === "lost") {
+								UserInLeague.findByIdAndUpdate(user._id, { inPlayCoins: user.inPlayCoins - bet.betAmount }, { new: true })
+									.then((response) => console.log(response))
+									.catch((err) => console.log(err))
+							} else {
+								console.log("not won")
+							}
+						})
+					})
+				})
+		})
+
 		.catch((err) => res.json(err))
 })
 
