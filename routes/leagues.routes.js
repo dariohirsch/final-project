@@ -54,7 +54,7 @@ router.post("/join-league", (req, res, next) => {
 					League.findByIdAndUpdate(leagueId, { $push: { participants: userId } }, { new: true }).then(() => {
 						UserInLeague.find({ userId: userId, league: leagueId }).then((result) => {
 							if (result.length === 0) {
-								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, realCoinsInLeague: 500, bets: [] }).then(() => {
+								UserInLeague.create({ userId: userId, league: leagueId, coinsInLeague: 500, inPlayCoins: 0, bets: [] }).then(() => {
 									res.status(201).json({ message: "ok" })
 								})
 							} else {
@@ -113,12 +113,20 @@ router.post("/get-userinleague", (req, res, next) => {
 //user place a bet
 
 router.post("/place-bet", (req, res, next) => {
-	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague, condition, matchTime, status } = req.body
+	const { userId, leagueId, betMatch, coinsToWin, betSigne, betAmount, matchId, coinsInLeague, condition, matchTime, status, inPlayCoins } = req.body
 
-	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague })
+	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague, inPlayCoins: inPlayCoins })
 
 		.then(() => {
-			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime, status }).then((bet) => res.json(bet))
+			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime, status }).then((bet) => {
+				UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { $push: { bets: bet._id } })
+					.then((response) => {
+						res.json(response)
+					})
+					.catch((err) => {
+						console.log(err)
+					})
+			})
 		})
 		.catch((err) => {
 			console.log(err)
@@ -130,16 +138,45 @@ router.post("/place-bet", (req, res, next) => {
 
 router.post("/bet-check-status-win", (req, res, next) => {
 	const { betId } = req.body
-	Bet.findByIdAndUpdate(betId, { status: "won" })
-		.then((info) => res.json(info))
+	Bet.findByIdAndUpdate(betId, { status: "won", condition: "closed" })
+		.then((result) => {
+			res.json(result)
+			UserInLeague.find()
+				.populate("bets")
+				.then((users) => {
+					users.forEach((user) => {
+						user.bets.forEach((bet) => {
+							// console.log("esto es bet", bet)
+							if (bet.status === "won") {
+								UserInLeague.findByIdAndUpdate(user._id, { coinsInLeague: user.coinsInLeague + bet.coinsToWin, inPlayCoins: user.inPlayCoins - bet.betAmount }, { new: true })
+									.then((response) => console.log(response))
+									.catch((err) => console.log(err))
+							} else {
+								console.log("not won")
+							}
+						})
+					})
+				})
+		})
+
 		.catch((err) => res.json(err))
 })
 router.post("/bet-check-status-lost", (req, res, next) => {
 	const { betId } = req.body
-	Bet.findByIdAndUpdate(betId, { status: "lost" })
+	Bet.findByIdAndUpdate(betId, { status: "lost", condition: "closed" })
 		.then((info) => res.json(info))
 		.catch((err) => res.json(err))
 })
+
+// get only won bets
+
+// router.get("/won-bets", (req, res, next) => {
+// 	UserInLeague.find()
+// 		.populate("bets")
+// 		.then((res) => {
+// 			console.log("user in league", res)
+// 		})
+// })
 
 //subnavbar league
 
@@ -171,14 +208,10 @@ router.post("/get-userinleague2", (req, res, next) => {
 
 	UserInLeague.find({ league: leagueId })
 
-		.sort({ realCoinsInLeague: -1 })
+		.sort({ coinsInLeague: -1 })
 		.populate("userId")
-		.then((userInLeague) =>
-			res
-				.json(userInLeague)
-
-				.catch((err) => res.json(err))
-		)
+		.then((userInLeague) => res.json(userInLeague))
+		.catch((err) => res.json(err))
 })
 
 module.exports = router

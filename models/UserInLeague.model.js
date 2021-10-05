@@ -11,7 +11,7 @@ const userInLeagueSchema = new Schema({
 		ref: "League",
 	},
 	coinsInLeague: { type: Number },
-	realCoinsInLeague: { type: Number },
+	inPlayCoins: { type: Number },
 	bets: [
 		{
 			type: Schema.Types.ObjectId,
