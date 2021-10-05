@@ -11,7 +11,7 @@ const UserInLeague = require("../models/UserInLeague.model")
 
 //create new league
 router.post("/newleague", (req, res, next) => {
-	const { name, inscriptionPrice, maxParticipants, accessCode, pot, condition } = req.body
+	const { name, inscriptionPrice, maxParticipants, accessCode, pot, condition, finishDate } = req.body
 
 	League.findOne({ name })
 		.then((foundLeague) => {
@@ -21,7 +21,7 @@ router.post("/newleague", (req, res, next) => {
 				return
 			}
 
-			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot, condition })
+			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot, condition, finishDate })
 		})
 		.then((createdLeague) => {
 			res.status(201).json({ league: createdLeague })
@@ -161,6 +161,42 @@ router.post("/bet-check-status-win", (req, res, next) => {
 
 		.catch((err) => res.json(err))
 })
+
+// get all open leagues, close those that should be finished and update users.
+
+router.get("/leagues-results", (req, res, next) => {
+	// Bet.find({ condition: { $elemMatch: "open" } })
+	League.find({ condition: { $in: ["open"] } })
+		.populate("participants")
+		.then((leagues) =>
+			leagues.forEach((league) => {
+				if (league.finishDate < new Date() / 1000) {
+					League.findByIdAndUpdate(league._id, { condition: "closed" }, { new: true }).then((res) => console.log("ligas cerradas ok", res))
+					UserInLeague.find()
+						.populate("leagues")
+						.then((users) =>
+							users.forEach((user) => {
+								console.log("user solo", user.league)
+								console.log("id liga", league._id)
+
+								if (user.league === league._id) {
+									console.log("encontro coincidencias", user._id)
+								} else {
+									console.log("no coincide")
+								}
+							})
+						)
+				}
+			})
+		)
+
+	// // UserInLeague.find().then((users) => {
+	// // 	users.forEach((user) => {
+	// // 		console.log("esto es user", user)
+	// 	})
+	// })
+})
+
 router.post("/bet-check-status-lost", (req, res, next) => {
 	const { betId } = req.body
 	Bet.findByIdAndUpdate(betId, { status: "lost", condition: "closed" })
