@@ -118,7 +118,7 @@ router.post("/place-bet", (req, res, next) => {
 	UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { coinsInLeague: coinsInLeague, inPlayCoins: inPlayCoins })
 
 		.then(() => {
-			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime, status }).then((bet) => {
+			Bet.create({ betMatch: betMatch, coinsToWin: coinsToWin, betSigne: betSigne, betAmount: betAmount, matchId: matchId, condition, matchTime, status: "pending" }).then((bet) => {
 				UserInLeague.findOneAndUpdate({ league: leagueId, userId: userId }, { $push: { bets: bet._id } })
 					.then((response) => {
 						res.json(response)
@@ -172,30 +172,32 @@ router.get("/leagues-results", (req, res, next) => {
 			leagues.forEach((league) => {
 				if (league.finishDate < new Date() / 1000) {
 					League.findByIdAndUpdate(league._id, { condition: "closed" }, { new: true }).then((res) => console.log("ligas cerradas ok", res))
-					UserInLeague.find()
-						.populate("leagues")
-						.then((users) =>
-							users.forEach((user) => {
-								console.log("user solo", user.league)
-								console.log("id liga", league._id)
+					UserInLeague.find({ league: league._id }).then((users) => {
+						users.sort((a, b) => {
+							if (a.coinsInLeague > b.coinsInLeague) {
+								return -1
+							}
+							if (a.coinsInLeague < b.coinsInleague) {
+								return 1
+							} else {
+								return 0
+							}
+						})
+						let pot = league.participants.length * league.inscriptionPrice
 
-								if (user.league === league._id) {
-									console.log("encontro coincidencias", user._id)
-								} else {
-									console.log("no coincide")
-								}
-							})
-						)
+						userIdWon = users[0].userId
+
+						User.findById(userIdWon).then((user) => {
+							const coins = user.coins
+							User.findByIdAndUpdate(userIdWon, { coins: coins + pot }, { new: true }).then((user) => console.log("user won with updated coins", user))
+						})
+					})
 				}
 			})
 		)
-
-	// // UserInLeague.find().then((users) => {
-	// // 	users.forEach((user) => {
-	// // 		console.log("esto es user", user)
-	// 	})
-	// })
 })
+// })
+// })
 
 router.post("/bet-check-status-lost", (req, res, next) => {
 	const { betId } = req.body
@@ -266,6 +268,19 @@ router.post("/get-userinleague2", (req, res, next) => {
 		.sort({ coinsInLeague: -1 })
 		.populate("userId")
 		.then((userInLeague) => res.json(userInLeague))
+		.catch((err) => res.json(err))
+})
+
+// get bets from one user
+
+router.post("/get-mybets", (req, res, next) => {
+	const { leagueId, userId } = req.body
+
+	UserInLeague.find({ league: leagueId, userId: userId })
+		.populate("bets")
+		.then((bets) => {
+			res.json(bets)
+		})
 		.catch((err) => res.json(err))
 })
 
