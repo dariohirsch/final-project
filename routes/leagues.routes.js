@@ -35,7 +35,7 @@ router.post("/newleague", (req, res, next) => {
 // get all leagues
 
 router.get("/leagues", (req, res, next) => {
-	League.find()
+	League.find({ condition: { $in: ["open"] } })
 		//	.populate("User")
 		.then((allLeagues) => res.json(allLeagues))
 		.catch((err) => res.json(err))
