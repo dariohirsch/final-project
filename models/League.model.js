@@ -6,7 +6,7 @@ const leagueSchema = new Schema(
 		name: { type: String },
 		inscriptionPrice: { type: Number },
 		maxParticipants: { type: Number },
-		accesCode: { type: String },
+		accessCode: { type: String },
 		participants: [
 			{
 				type: Schema.Types.ObjectId,
