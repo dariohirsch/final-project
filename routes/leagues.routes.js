@@ -11,7 +11,7 @@ const UserInLeague = require("../models/UserInLeague.model")
 
 //create new league
 router.post("/newleague", (req, res, next) => {
-	const { name, inscriptionPrice, maxParticipants, accessCode, pot, condition, finishDate } = req.body
+	const { name, inscriptionPrice, maxParticipants, accessCode, pot, condition, finishDate, potToWinners } = req.body
 
 	League.findOne({ name })
 		.then((foundLeague) => {
@@ -21,7 +21,7 @@ router.post("/newleague", (req, res, next) => {
 				return
 			}
 
-			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot, condition, finishDate })
+			return League.create({ name, inscriptionPrice, maxParticipants, accessCode, participants: [], pot, condition, finishDate, potToWinners })
 		})
 		.then((createdLeague) => {
 			res.status(201).json({ league: createdLeague })
@@ -184,13 +184,40 @@ router.get("/leagues-results", (req, res, next) => {
 							}
 						})
 						let pot = league.participants.length * league.inscriptionPrice
-
 						userIdWon = users[0].userId
 
-						User.findById(userIdWon).then((user) => {
-							const coins = user.coins
-							User.findByIdAndUpdate(userIdWon, { coins: coins + pot }, { new: true }).then((user) => console.log("user won with updated coins", user))
-						})
+						userIdWon1 = users[0].userId
+						userIdWon2 = users[1].userId
+						userIdWon3 = users[2].userId
+						let potWinner1 = league.participants.length * league.inscriptionPrice * 0.5
+						let potWinner2 = league.participants.length * league.inscriptionPrice * 0.3
+						let potWinner3 = (league.participants.length * league.inscriptionPrice * 20) / 100
+
+						if (league.potToWiners === "first-second-third") {
+							User.findById(userIdWon1).then((user) => {
+								const coins = user.coins
+								User.findByIdAndUpdate(userIdWon1, { coins: coins + potWinner1 }, { new: true }).then((user) => console.log("user won with updated coins", user))
+							})
+						}
+
+						if (league.potToWiners === "first-second-third") {
+							User.findById(userIdWon2).then((user) => {
+								const coins = user.coins
+								User.findByIdAndUpdate(userIdWon2, { coins: coins + potWinner2 }, { new: true }).then((user) => console.log("user won with updated coins", user))
+							})
+						}
+
+						if (league.potToWiners === "first-second-third") {
+							User.findById(userIdWon3).then((user) => {
+								const coins = user.coins
+								User.findByIdAndUpdate(userIdWon3, { coins: coins + potWinner3 }, { new: true }).then((user) => console.log("user won with updated coins", user))
+							})
+						} else {
+							User.findById(userIdWon).then((user) => {
+								const coins = user.coins
+								User.findByIdAndUpdate(userIdWon, { coins: coins + pot }, { new: true }).then((user) => console.log("user won with updated coins", user))
+							})
+						}
 					})
 				}
 			})

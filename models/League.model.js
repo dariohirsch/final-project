@@ -15,6 +15,7 @@ const leagueSchema = new Schema(
 		],
 
 		pot: { type: Number },
+		potToWinners: { type: String },
 		condition: { type: String },
 		finishDate: { type: Number },
 	},
