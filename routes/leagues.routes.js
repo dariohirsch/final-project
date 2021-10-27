@@ -280,7 +280,7 @@ router.post("/get-userLeague", (req, res, next) => {
 
 router.get("/bet-results", (req, res, next) => {
 	// Bet.find({ condition: { $elemMatch: "open" } })
-	Bet.find({ condition: { $in: ["open"] } })
+	Bet.find({ condition: "open" })
 		// .filter({ condition: "open" })
 		.then((bets) => res.json(bets))
 		.catch((err) => res.json(err))

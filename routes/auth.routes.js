@@ -115,6 +115,7 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 
 	// Send back the object with user data
 	// previously set as the token payload
+	console.log("req", req)
 	res.status(200).json(req.payload)
 })
 
